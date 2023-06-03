@@ -1,8 +1,12 @@
 package dev.passerby.servicesprojectcourse
 
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.content.ComponentName
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import dev.passerby.servicesprojectcourse.MyJobService.Companion.JOB_ID
 import dev.passerby.servicesprojectcourse.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -14,20 +18,33 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.simpleService.setOnClickListener {
-            startService(MyService.newIntent(this, 25))
-        }
-        binding.foregroundService.setOnClickListener {
-            ContextCompat.startForegroundService(
-                this,
-                MyForegroundService.newIntent(this)
-            )
-        }
-        binding.intentService.setOnClickListener {
-            ContextCompat.startForegroundService(
-                this,
-                MyIntentService.newIntent(this)
-            )
+        binding.apply {
+            simpleService.setOnClickListener {
+                startService(MyService.newIntent(this@MainActivity, 25))
+            }
+            foregroundService.setOnClickListener {
+                ContextCompat.startForegroundService(
+                    this@MainActivity,
+                    MyForegroundService.newIntent(this@MainActivity)
+                )
+            }
+            intentService.setOnClickListener {
+                ContextCompat.startForegroundService(
+                    this@MainActivity,
+                    MyIntentService.newIntent(this@MainActivity)
+                )
+            }
+            jobScheduler.setOnClickListener {
+                val componentName = ComponentName(this@MainActivity, MyJobService::class.java)
+
+                val jobInfo = JobInfo.Builder(JOB_ID, componentName)
+                    .setRequiresCharging(true)
+                    .setRequiredNetworkType(JobInfo.NETWORK_TYPE_UNMETERED)
+                    .build()
+
+                val jobScheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+                jobScheduler.schedule(jobInfo)
+            }
         }
     }
 }
